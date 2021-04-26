@@ -19,7 +19,7 @@
     "i18next-http-backend": "1.0.21",
     "immer": "6.0.9",
     "js-cookie": "2.2.1",
-    "material-table": "1.69.1",
+    "material-table": "1.69.3",
     "normalize-text": "2.3.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
