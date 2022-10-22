@@ -1,3 +1,4 @@
 ## XLSX Draw Parser
 
-Supports old ITF XLSX formats
+- Supports old ITF XLSX formats
+- WIP: support CR
