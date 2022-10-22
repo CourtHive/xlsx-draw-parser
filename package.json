@@ -29,7 +29,7 @@
     "react-redux": "7.2.9",
     "react-scripts": "3.4.3",
     "redux": "4.0.5",
-    "typescript": "3.8.3",
+    "typescript": "3.9.10",
     "xlsx": "0.16.0"
   },
   "scripts": {
