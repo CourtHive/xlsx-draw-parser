@@ -30,7 +30,7 @@
     "react-scripts": "3.4.3",
     "redux": "4.0.5",
     "typescript": "3.9.10",
-    "xlsx": "0.16.0"
+    "xlsx": "0.17.0"
   },
   "scripts": {
     "start": "react-scripts start",
