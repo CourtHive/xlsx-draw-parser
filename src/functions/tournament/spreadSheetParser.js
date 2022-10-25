@@ -31,6 +31,7 @@ export function spreadSheetParser(file_content) {
 
   const sheetNames = workbook.SheetNames;
   const workbookType = identifyWorkbook({ sheetNames });
+  console.log({ workbookType });
   if (!workbookType) return notifyNotIdentified();
 
   let profile = workbookType.profile;
@@ -145,10 +146,11 @@ function notifyNotIdentified() {
 
 function identifyWorkbook({ sheetNames }) {
   return workbookTypes.reduce((type, currentType) => {
-    const requiredSheetTest = currentType.mustContainSheetNames.map(
+    const sheetNameMatcher = currentType.sheetNameMatcher;
+    const containsRequiredSheets = currentType.mustContainSheetNames.some(
       (sheetName) => sheetNames.includes(sheetName)
     );
-    const containsRequiredSheets = !requiredSheetTest.includes(false);
-    return containsRequiredSheets ? currentType : type;
+    const matchesFound = sheetNameMatcher && sheetNameMatcher(sheetNames);
+    return containsRequiredSheets || matchesFound ? currentType : type;
   }, undefined);
 }
