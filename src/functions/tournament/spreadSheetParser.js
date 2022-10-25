@@ -1,109 +1,153 @@
-import XLSX from 'xlsx';
+import XLSX from "xlsx";
 
-import { xlsxStore } from 'stores/xlsxStore';
-import { extractInfo } from 'functions/dataExtraction/extractInfo';
-import { workbookTypes } from 'types/workbookTypes';
-import { identifySheet } from 'functions/tournament/profileFx';
-import { processKnockOut } from 'functions/drawStructures/knockOut/processKnockOut';
-import { processRoundRobin } from 'functions/drawStructures/roundRobin/processRoundRobin';
+import { processRoundRobin } from "functions/drawStructures/roundRobin/processRoundRobin";
+import { processKnockOut } from "functions/drawStructures/knockOut/processKnockOut";
+import { extractInfo } from "functions/dataExtraction/extractInfo";
+import { identifySheet } from "functions/tournament/profileFx";
+import { createTournamentRecord } from "./tournamentRecord";
+import { workbookTypes } from "types/workbookTypes";
+import { xlsxStore } from "stores/xlsxStore";
 
-import { KNOCKOUT, ROUND_ROBIN, PARTICIPANTS, INFORMATION } from '../../types/sheetTypes';
-import { createTournamentRecord } from './tournamentRecord';
+import {
+  KNOCKOUT,
+  ROUND_ROBIN,
+  PARTICIPANTS,
+  INFORMATION,
+} from "../../types/sheetTypes";
 
 export function spreadSheetParser(file_content) {
+  xlsxStore.dispatch({ type: "loading state", payload: true });
   console.clear();
-  xlsxStore.dispatch({type: 'loading state', payload: true});
 
-  const filterValueStorage = 'xlsxSheetFilter';
-  const sheetFilter = localStorage.getItem(filterValueStorage)
-  const workbook = XLSX.read(file_content, { type: 'binary' });
- 
+  const filterValueStorage = "xlsxSheetFilter";
+  const sheetFilter = localStorage.getItem(filterValueStorage)?.toLowerCase();
+  const workbook = XLSX.read(file_content, { type: "binary" });
+
   let draws = [];
   let tournamentData = {};
-  
+
   let allPlayers = {};
   let allParticipants = {};
-  
+
   const sheetNames = workbook.SheetNames;
-  const workbookType = identifyWorkbook({sheetNames});
-  if (workbookType) {
-    let profile = workbookType.profile;
-    if (!profile) {
-      xlsxStore.dispatch({
-        type: 'toaster state',
-        payload: {
-          severity: 'error',
-          message: `Missing profile for ${workbookType.organization}`
-        }
+  const workbookType = identifyWorkbook({ sheetNames });
+  if (!workbookType) return notifyNotIdentified();
+
+  let profile = workbookType.profile;
+  if (!profile) return missingProfile({ workbookType });
+
+  const sheetFilterFx = (sheet) =>
+    !sheetFilter || sheet.toLowerCase().includes(sheetFilter);
+  const sheetsToProcess = sheetNames.filter(sheetFilterFx);
+
+  console.log("%c Processing sheets...", "color: lightgreen", sheetsToProcess);
+
+  const pushData = ({ drawInfo, playersMap, participantsMap }) => {
+    Object.assign(allParticipants, participantsMap || {});
+    Object.assign(allPlayers, playersMap || {});
+    draws.push(drawInfo);
+  };
+
+  const addKnockoutData = ({ sheet, sheetName, sheetDefinition }) => {
+    const data = processKnockOut({
+      sheetDefinition,
+      sheetName,
+      profile,
+      sheet,
+    });
+    pushData(data);
+  };
+
+  const addRoundRobinData = ({ sheet, sheetName, sheetDefinition }) => {
+    const data = processRoundRobin({
+      sheetDefinition,
+      sheetName,
+      profile,
+      sheet,
+    });
+    pushData(data);
+  };
+
+  const processSheet = (sheetName) => {
+    const sheet = workbook.Sheets[sheetName];
+    const sheetDefinition = identifySheet({ sheetName, sheet, profile });
+    const toProcess = sheetsToProcess.includes(sheetName);
+    if (!sheetDefinition) {
+      missingSheetDefinition({ toProcess, sheetName });
+    } else if (toProcess && sheetDefinition.type === KNOCKOUT) {
+      addKnockoutData({ sheet, sheetName, sheetDefinition });
+    } else if (toProcess && sheetDefinition.type === ROUND_ROBIN) {
+      addRoundRobinData({ sheet, sheetName, sheetDefinition });
+    } else if (toProcess && sheetDefinition.type === PARTICIPANTS) {
+      logSheetDefinition({ sheetName, sheetDefinition });
+    } else if (sheetDefinition.type === INFORMATION) {
+      if (toProcess) {
+        logSheetDefinition({ sheetName, sheetDefinition });
+      }
+
+      const tournamentInfo = extractInfo({
+        infoClass: "tournamentInfo",
+        profile,
+        sheet,
       });
-      return;
+      Object.assign(tournamentData, tournamentInfo);
+    } else if (toProcess) {
+      missingSheetDefinition({ toProcess, sheetName });
     }
+  };
 
-    const sheetsToProcess = sheetNames
-      .filter(sheet => !sheetFilter || sheet.toLowerCase().includes(sheetFilter.toLowerCase()));
-    
-    console.log('%c Processing sheets...', 'color: lightgreen', sheetsToProcess);
+  sheetNames.forEach(processSheet);
 
-    let drawInfo, playersMap, participantsMap;
-    
-    sheetNames.forEach(sheetName => {
-      let message = '';
-      let color = 'cyan';
-     
-      const sheet = workbook.Sheets[sheetName];
-      const sheetDefinition = identifySheet({sheetName, sheet, profile});
-      const processSheet = sheetsToProcess.includes(sheetName);
-      if (!sheetDefinition) {
-        message = `%c sheetDefinition not found: ${sheetName}`;
-        if (processSheet) {
-          color = 'yellow';
-          console.log(message, `color: ${color}`);
-        }
-      } else if (processSheet && sheetDefinition.type === KNOCKOUT) {
-        ({ drawInfo, playersMap, participantsMap } = processKnockOut({profile, sheet, sheetName, sheetDefinition}));
-        draws.push(drawInfo);
-      } else if (processSheet && sheetDefinition.type === ROUND_ROBIN) {
-        ({ drawInfo, playersMap, participantsMap } = processRoundRobin({profile, sheet, sheetName, sheetDefinition}));
-        draws.push(drawInfo);
-      } else if (processSheet && sheetDefinition.type === PARTICIPANTS) {
-        message = `%c sheetDefinition for ${sheetName} is ${sheetDefinition.type}`;
-        console.log(message, `color: ${color}`)
-      } else if (sheetDefinition.type === INFORMATION) {
-        if (processSheet) {
-          message = `%c sheetDefinition for ${sheetName} is ${sheetDefinition.type}`;
-          console.log(message, `color: ${color}`)
-        }
+  const providerId = profile && profile.providerId;
+  Object.assign(tournamentData, { providerId });
+  createTournamentRecord({
+    allParticipants,
+    tournamentData,
+    allPlayers,
+    draws,
+  });
+}
 
-        const tournamentInfo = extractInfo({profile, sheet, infoClass: 'tournamentInfo'})
-        Object.assign(tournamentData, tournamentInfo);
-      } else if (processSheet) {
-        color = 'yellow'
-        message = `%c sheetDefinition not found: ${sheetName}`;
-        console.log(message, `color: ${color}`);
-      }
+function logSheetDefinition({ sheetName, sheetDefinition }) {
+  const message = `%c sheetDefinition for ${sheetName} is ${sheetDefinition.type}`;
+  const color = "cyan";
+  console.log(message, `color: ${color}`);
+}
 
-      Object.assign(allPlayers, playersMap || {});
-      Object.assign(allParticipants, participantsMap || {});
-    });
-    
-    const providerId = profile && profile.providerId;
-    Object.assign(tournamentData, { providerId });
-    createTournamentRecord({draws, allPlayers, allParticipants, tournamentData});
-  } else {
-    xlsxStore.dispatch({
-      type: 'toaster state',
-      payload: {
-        severity: 'error',
-        message: `Cannot Identify Workbook`,
-        cancelLoading: true
-      }
-    });
+function missingSheetDefinition({ toProcess, sheetName }) {
+  const message = `%c sheetDefinition not found: ${sheetName}`;
+  if (toProcess) {
+    const color = "yellow";
+    console.log(message, `color: ${color}`);
   }
 }
 
-function identifyWorkbook({sheetNames}) {
+function missingProfile({ workbookType }) {
+  xlsxStore.dispatch({
+    type: "toaster state",
+    payload: {
+      severity: "error",
+      message: `Missing profile for ${workbookType.organization}`,
+    },
+  });
+}
+
+function notifyNotIdentified() {
+  xlsxStore.dispatch({
+    type: "toaster state",
+    payload: {
+      severity: "error",
+      message: `Cannot Identify Workbook`,
+      cancelLoading: true,
+    },
+  });
+}
+
+function identifyWorkbook({ sheetNames }) {
   return workbookTypes.reduce((type, currentType) => {
-    const requiredSheetTest = currentType.mustContainSheetNames.map(sheetName => sheetNames.includes(sheetName));
+    const requiredSheetTest = currentType.mustContainSheetNames.map(
+      (sheetName) => sheetNames.includes(sheetName)
+    );
     const containsRequiredSheets = !requiredSheetTest.includes(false);
     return containsRequiredSheets ? currentType : type;
   }, undefined);
