@@ -33,22 +33,26 @@ export const workbookTypes = [
         includes: [],
         sub_includes: [],
       },
-      columnsMap: {
-        position: "A",
-        rank: "",
-        id: "",
-        seed: "",
-        lastName: "",
-        firstName: "",
-        club: "",
-        rounds: "K",
-      },
+      columnsMap: {},
+      knockOutRounds: [
+        "PRIMERA RONDA",
+        "SEGUNDA RONDA",
+        "OCTAVOS",
+        "CUARTOS",
+        "SEMIFINAL",
+        "SEMIFINALES",
+        "FINAL",
+        "CAMPEÓN",
+        "GANADOR",
+        "GANADORA",
+      ],
       rowDefinitions: [
         {
           type: HEADER,
           id: "knockoutParticipants",
           elements: [
             "PRIMERA RONDA",
+            "SEGUNDA RONDA",
             "OCTAVOS",
             "CUARTOS",
             "SEMIFINAL",
@@ -72,7 +76,7 @@ export const workbookTypes = [
           type: FOOTER,
           id: "drawFooter",
           elements: ["TORNEO"],
-          rows: 9,
+          rows: 8,
           minimumElements: 1,
         },
       ],
@@ -99,25 +103,13 @@ export const workbookTypes = [
         },
       ],
       gaps: { draw: { term: "Round 1", gap: 0 } },
-      headerColumns: [
-        { attr: "rank", header: "Rangs" },
-        { attr: "rank", header: "Rangsor" },
-        { attr: "id", header: "kód" },
-        { attr: "id", header: "Kódszám" },
-        { attr: "seed", header: "Kiem" },
-        { attr: "lastName", header: "Családi név" },
-        { attr: "lastName", header: "Vezetéknév" },
-        { attr: "firstName", header: "Keresztnév" },
-        { attr: "club", header: "Egyesület" },
-        { attr: "rounds", header: "Döntő" },
-        { attr: "rounds", header: "2. forduló" },
-      ],
+      headerColumns: [],
       playerRows: { playerNames: true, lastName: true, firstName: true },
       tournamentInfo: [
         {
           attribute: "tournamentName",
-          searchText: "A verseny neve",
-          rowOffset: 1,
+          searchText: "TORNEO",
+          columnOffset: 1,
         },
         {
           attribute: "dates",
@@ -183,7 +175,7 @@ export const workbookTypes = [
         const startDate = splitDate[0].split(".").join("-");
         let result = { startDate };
         if (splitDate[1]) {
-          const endSplit = splitDate[1].split(".").filter((f) => f);
+          const endSplit = splitDate[1].split(".").filter(Boolean);
           const yearMonth = startDate.split("-").slice(0, 3 - endSplit.length);
           const endDate = [].concat(...yearMonth, ...endSplit).join("-");
           result.endDate = endDate;
@@ -465,7 +457,7 @@ export const workbookTypes = [
         const startDate = splitDate[0].split(".").join("-");
         let result = { startDate };
         if (splitDate[1]) {
-          const endSplit = splitDate[1].split(".").filter((f) => f);
+          const endSplit = splitDate[1].split(".").filter(Boolean);
           const yearMonth = startDate.split("-").slice(0, 3 - endSplit.length);
           const endDate = [].concat(...yearMonth, ...endSplit).join("-");
           result.endDate = endDate;

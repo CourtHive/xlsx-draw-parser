@@ -21,7 +21,7 @@ export function identifySheet({ sheet, profile }) {
       const row = findRow({ sheet, rowDefinition });
       return row ? rowIds.concat(rowDefinition.id) : rowIds;
     }, [])
-    .filter((f) => f);
+    .filter(Boolean);
   const identifiedDefinition = sheetDefinitions.reduce(
     (sheetDefinition, currentDefinition) => {
       const exactMatch = currentDefinition.rowIds.reduce(

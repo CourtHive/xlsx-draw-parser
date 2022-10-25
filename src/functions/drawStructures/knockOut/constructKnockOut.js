@@ -163,7 +163,7 @@ function addEntryRound(rounds, players) {
   let winnerDrawPositions = unique(
     [].concat(
       ...rounds.map((matchUps) =>
-        matchUps.map((match) => match.winningDrawPosition).filter((f) => f)
+        matchUps.map((match) => match.winningDrawPosition).filter(Boolean)
       )
     )
   );

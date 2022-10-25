@@ -70,6 +70,7 @@ export function spreadSheetParser(file_content) {
   };
 
   const processSheet = (sheetName) => {
+    console.log("processing", { sheetName });
     const sheet = workbook.Sheets[sheetName];
     const sheetDefinition = identifySheet({ sheetName, sheet, profile });
     const toProcess = sheetsToProcess.includes(sheetName);
@@ -101,6 +102,7 @@ export function spreadSheetParser(file_content) {
 
   const providerId = profile && profile.providerId;
   Object.assign(tournamentData, { providerId });
+
   createTournamentRecord({
     allParticipants,
     tournamentData,
