@@ -1,5 +1,5 @@
-import { HEADER, FOOTER } from "./sheetElements";
 import { KNOCKOUT, ROUND_ROBIN, PARTICIPANTS, INFORMATION } from "./sheetTypes";
+import { HEADER, FOOTER } from "./sheetElements";
 
 export const workbookTypes = [
   {
@@ -8,6 +8,7 @@ export const workbookTypes = [
     profile: {
       providerId: "CR-XXXX",
       skipWords: [],
+      skipContains: ["página", "pagina"],
       skipExpressions: [],
       matchOutcomes: [
         "ret.",

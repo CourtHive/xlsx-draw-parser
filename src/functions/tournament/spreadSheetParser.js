@@ -70,10 +70,10 @@ export function spreadSheetParser(file_content) {
   };
 
   const processSheet = (sheetName) => {
-    console.log("processing", { sheetName });
     const sheet = workbook.Sheets[sheetName];
     const sheetDefinition = identifySheet({ sheetName, sheet, profile });
     const toProcess = sheetsToProcess.includes(sheetName);
+    if (toProcess) console.log("processing", { sheetName });
     if (!sheetDefinition) {
       missingSheetDefinition({ toProcess, sheetName });
     } else if (toProcess && sheetDefinition.type === KNOCKOUT) {

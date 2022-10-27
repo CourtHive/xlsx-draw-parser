@@ -19,12 +19,6 @@ export function getParticipantRows({
   if (!profile) return { rows: [], preRoundRows: [] };
   const skipWords = profile.skipWords;
   const skipExpressions = profile.skipExpressions;
-  // ensure that the key is of the form [A-Z][#], not 'AA1', for example
-  const isSingleAlpha = (key) => key && key.length > 1 && isNumeric(key[1]);
-  const inRowBand = (key) => {
-    const row = key && getRow(key);
-    return row && row > headerRow && row < footerRow;
-  };
   const isStringValue = (key) => {
     const value = getCellValue(sheet[key]);
     return value && typeof value === "string";
@@ -35,22 +29,13 @@ export function getParticipantRows({
     return value && isNumeric(value);
   };
 
-  const knockOutRounds = profile.knockOutRounds;
-  function getDrawColumns() {
-    const getValue = (key) => getCellValue(sheet[key]);
-    const inRow = (key) => getRow(key) === headerRow;
-    const inKnockOutRounds = (key) => {
-      const value = getValue(key);
-      return knockOutRounds.includes(value);
-    };
-    const rowKeys = Object.keys(sheet)
-      .filter(inRow)
-      .filter(isSingleAlpha)
-      .filter(inKnockOutRounds);
-    console.log({ rowKeys });
-  }
-  if (knockOutRounds) getDrawColumns();
-
+  // ensure that the key is of the form [A-Z][#], not 'AA1', for example
+  const isSingleAlpha = (key) => key && key.length > 1 && isNumeric(key[1]);
+  const inRowBand = (key) => {
+    const row = key && getRow(key);
+    return row && row > headerRow && row < footerRow;
+  };
+  const targetColumn = (key, column) => getCol(key) === columns[column];
   function isSkipExpression(value, expression) {
     const re = new RegExp(expression, "g");
     return value && re.test(value);
@@ -69,7 +54,81 @@ export function getParticipantRows({
     .filter(inRowBand)
     .filter(isSingleAlpha)
     .filter(isNotSkipExpression);
-  const targetColumn = (key, column) => getCol(key) === columns[column];
+
+  const getValue = (key) => getCellValue(sheet[key]);
+  const knockOutRounds = profile.knockOutRounds;
+
+  function getDrawColumnKeys() {
+    const inRow = (key) => getRow(key) === headerRow;
+    const inKnockOutRounds = (key) => {
+      const value = getValue(key);
+      return knockOutRounds.includes(value);
+    };
+    return Object.keys(sheet)
+      .filter(inRow)
+      .filter(isSingleAlpha)
+      .filter(inKnockOutRounds);
+  }
+
+  const assessColumn = (column) => {
+    const isColumnKey = (key) => getCol(key) === column;
+    const prospectColumnKeys = filteredKeys.filter(isColumnKey);
+
+    return prospectColumnKeys.reduce(
+      (assesment, key) => {
+        const value = getValue(key).split(".").join("");
+        const skip = profile.skipContains?.some((sv) =>
+          value.toLowerCase().includes(sv)
+        );
+        if (!skip) {
+          assesment.values.push(value);
+          if (isNumeric(value)) {
+            assesment.containsNumeric = true;
+          } else if (value) {
+            assesment.allNumeric = false;
+          }
+        }
+        return assesment;
+      },
+      {
+        containsNumeric: false,
+        allNumeric: !!prospectColumnKeys.length,
+        values: [],
+      }
+    );
+  };
+
+  if (knockOutRounds) {
+    const drawColumnKeys = getDrawColumnKeys();
+    const firstColumnKey = drawColumnKeys?.[0];
+    const firstColumn = getCol(firstColumnKey);
+    const prospectColumn =
+      firstColumnKey && String.fromCharCode(firstColumn.charCodeAt(0) - 1);
+    const secondColumn =
+      firstColumnKey && String.fromCharCode(firstColumn.charCodeAt(0) + 1);
+
+    const { containsNumeric, allNumeric } = assessColumn(prospectColumn);
+
+    if (!containsNumeric && !allNumeric) {
+      // find column with numbers
+      const columnTargets = ["A", "B", "C", "D"];
+      const numericColumn = columnTargets.find((column) => {
+        let { containsNumeric } = assessColumn(column);
+        return containsNumeric;
+      });
+      if (numericColumn) {
+        const targetColumn =
+          columnTargets[columnTargets.indexOf(numericColumn) + 1];
+        console.log("pre-round", firstColumn);
+        console.log("players in column", targetColumn);
+      }
+    } else if (containsNumeric && !allNumeric) {
+      console.log("pre-round", firstColumn);
+      console.log("players in column", secondColumn);
+    } else {
+      console.log("players in column", firstColumn);
+    }
+  }
 
   const isNotSkipWord = (key) => {
     const value = getCellValue(sheet[key]);
