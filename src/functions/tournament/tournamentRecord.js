@@ -77,23 +77,23 @@ function getParticipants({ allPlayers, allParticipants }) {
   }
 
   function individualParticipant(participantId) {
-    const player = allPlayers[participantId];
-    if (!player) {
+    const person = allPlayers[participantId];
+    if (!person) {
       console.log("no player", { participantId });
       return {};
     }
     const participant = {
       participantName: normalizeName(
-        `${player.last_name}, ${player.first_name}`
+        `${person.last_name}, ${person.first_name}`
       ),
       participantRole: "COMPETITOR",
       participantType: INDIVIDUAL,
       participantId,
       person: {
-        personId: player.personId,
-        gender: player.gender,
-        standardFamilyName: player.last_name,
-        standardGivenName: player.first_name,
+        personId: person.personId,
+        gender: person.gender,
+        standardFamilyName: person.last_name,
+        standardGivenName: person.first_name,
       },
     };
     return participant;
