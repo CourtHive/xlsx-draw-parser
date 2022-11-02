@@ -3,6 +3,7 @@ import { INDIVIDUAL, PAIR, QUALIFYING } from "types/todsConstants";
 import { xlsxStore } from "stores/xlsxStore";
 import { unique } from "functions/utilities";
 import { addDev } from "config/setDev";
+import { normalizeName } from "normalize-text";
 
 export function createTournamentRecord({
   draws,
@@ -82,15 +83,17 @@ function getParticipants({ allPlayers, allParticipants }) {
       return {};
     }
     const participant = {
-      participantName: player.last_name,
+      participantName: normalizeName(
+        `${player.last_name}, ${player.first_name}`
+      ),
       participantRole: "COMPETITOR",
       participantType: INDIVIDUAL,
       participantId,
       person: {
         personId: player.personId,
         gender: player.gender,
-        preferredFamilyName: player.last_name,
-        preferredGivenName: player.first_name,
+        standardFamilyName: player.last_name,
+        standardGivenName: player.first_name,
       },
     };
     return participant;
