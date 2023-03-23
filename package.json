@@ -17,7 +17,7 @@
     "i18next": "19.9.2",
     "axios": "0.21.2",
     "i18next-http-backend": "1.4.4",
-    "immer": "6.0.9",
+    "immer": "9.0.21",
     "js-cookie": "2.2.1",
     "material-table": "1.69.3",
     "normalize-text": "2.4.1",
