@@ -28,7 +28,7 @@
     "react-json-view": "1.21.3",
     "react-redux": "7.2.9",
     "react-scripts": "3.4.3",
-    "redux": "4.2.0",
+    "redux": "4.2.1",
     "typescript": "3.9.10",
     "xlsx": "0.17.0"
   },
