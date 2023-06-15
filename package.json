@@ -27,7 +27,7 @@
     "react-i18next": "11.18.6",
     "react-json-view": "1.21.3",
     "react-redux": "7.2.9",
-    "react-scripts": "3.4.3",
+    "react-scripts": "3.4.4",
     "redux": "4.2.0",
     "typescript": "3.9.10",
     "xlsx": "0.17.0"
