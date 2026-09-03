@@ -7971,10 +7971,10 @@ normalize-range@^0.1.2:
   resolved "https://registry.npmjs.org/normalize-range/-/normalize-range-0.1.2.tgz"
   integrity sha1-LRDAa9/TEuqXd2laTShDlFa3WUI=
 
-normalize-text@2.4.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/normalize-text/-/normalize-text-2.4.1.tgz#dba275ef7d36533ea278fdd6e2e216eec34f3f74"
-  integrity sha512-cmckAM5KW/lvqJoDUZWOdMHswvEA5LBEtkR/0YXv6iNV+4+5Aha+1lOKQuVFT38lnRavDRSzpoxb9DTt/3nbOw==
+normalize-text@2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/normalize-text/-/normalize-text-2.6.0.tgz#ee9b7a7f955b0e233b976d7c1c48be077f85852f"
+  integrity sha512-/nNYxjIiJFatuDBPeYxrLH3GWw4y6jyplxkP3YEiwXtEYkbC6xvMMvjy+Y9wvlij4BrsTPGb+qUefphcnAfaKQ==
   dependencies:
     "@bitty/pipe" "^0.3.0"
 
